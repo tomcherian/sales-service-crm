@@ -41,3 +41,16 @@ All employee roles use the shared employee account model. Employee and customer 
 - A running MongoDB instance, local or hosted
 
 The client and server are separate applications with independent package manifests. Run the following commands from the repository root.
+
+## Run with Docker Compose
+
+- Docker Engine and the Docker Compose plugin
+
+Create the server environment file, then start the full app from the repository root:
+
+```sh
+cp server/.env.example server/.env
+docker compose up --build
+```
+
+Set a private `JWT_SECRET` of at least 32 characters in `server/.env` before running the app. The client is available at <http://localhost:8080>, the API at <http://localhost:4000>, and MongoDB is published on `127.0.0.1:27018`. Docker Compose stores database data in the `mongo-data` volume. Stop the services with `docker compose down`.
