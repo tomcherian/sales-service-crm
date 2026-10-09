@@ -1,0 +1,29 @@
+# Render Blueprint for the API. Deploys are triggered by GitHub Actions (deploy hook)
+# after CI passes, so Render's own auto-deploy is off.
+services:
+  - type: web
+    name: sales-service-crm-api
+    runtime: node
+    plan: free
+    # Region cannot be changed later. Pick the one closest to your Atlas cluster.
+    region: singapore
+    rootDir: server
+    # NODE_ENV=production makes npm skip devDependencies, but tsc is one, so include them for the build.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: JWT_SECRET
+        generateValue: true
+      # Set in the dashboard when the Blueprint is created (never committed).
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
