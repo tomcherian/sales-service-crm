@@ -8,6 +8,7 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  LinearProgress,
   Stack,
   Typography,
 } from "@mui/material";
@@ -24,6 +25,7 @@ interface Props<T> {
   page: number;
   limit: number;
   total: number;
+  loading?: boolean;
   search: string;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
@@ -37,6 +39,7 @@ export function DataTable<T>({
   page,
   limit,
   total,
+  loading,
   search,
   onPageChange,
   onLimitChange,
@@ -53,6 +56,7 @@ export function DataTable<T>({
         sx={{ maxWidth: 360 }}
       />
       <TableContainer component={Paper}>
+        {loading && <LinearProgress />}
         <Table>
           <TableHead>
             <TableRow>
@@ -69,7 +73,7 @@ export function DataTable<T>({
                 ))}
               </TableRow>
             ))}
-            {rows.length === 0 && (
+            {rows.length === 0 && !loading && (
               <TableRow>
                 <TableCell colSpan={columns.length}>
                   <Typography color="text.secondary">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/domains/auth";
+import { navItems } from "../navigation";
 import {
   AppBar,
   Box,
@@ -14,13 +15,6 @@ import {
 } from "@mui/material";
 
 const drawerWidth = 240;
-const adminLinks = [
-  ["/", "Dashboard"],
-  ["/team-leads", "Team Leads"],
-  ["/salespersons", "Salespersons"],
-  ["/maintenance", "Maintenance Staff"],
-  ["/customers", "Customers"],
-];
 
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -33,18 +27,19 @@ export function AppLayout() {
         <Typography variant="h6">Sales CRM</Typography>
       </Toolbar>
       <List>
-        {(user?.role === "admin" ? adminLinks : adminLinks.slice(0, 1)).map(
-          ([path, label]) => (
+        {navItems
+          .filter((item) => !item.adminOnly || user?.role === "admin")
+          .map(({ path, label }) => (
             <ListItemButton
               key={path}
               component={NavLink}
               to={path}
+              end={path === "/"}
               onClick={() => setMobileOpen(false)}
             >
               <ListItemText primary={label} />
             </ListItemButton>
-          ),
-        )}
+          ))}
       </List>
     </Box>
   );

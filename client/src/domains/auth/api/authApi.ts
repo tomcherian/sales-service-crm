@@ -1,5 +1,6 @@
-import { http } from "./http";
-import type { ApiResponse, User } from "../types";
+import { http } from "@/shared/api/http";
+import type { ApiResponse } from "@/shared/api/types";
+import type { User } from "../model/types";
 
 export async function login(email: string, password: string) {
   const response = await http.post<ApiResponse<{ token: string; user: User }>>(
