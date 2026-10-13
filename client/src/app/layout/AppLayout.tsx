@@ -57,7 +57,13 @@ export function AppLayout() {
       to={path}
       end={path === "/"}
       onClick={() => setMobileOpen(false)}
-      sx={nested ? { pl: 4 } : undefined}
+sx={{
+  ...(nested ? { pl: 4 } : {}),
+  '&[aria-current="page"]': {
+    bgcolor: "action.selected",
+    "&:hover": { bgcolor: "action.selected" },
+  },
+}}
     >
       <ListItemText primary={label} />
     </ListItemButton>
