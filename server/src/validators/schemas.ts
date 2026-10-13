@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MACHINE_TYPES } from "../models/MachineModel.js";
 import { USER_ROLES } from "../models/User.js";
 
 const optionalText = z.string().trim().max(500).optional();
@@ -68,9 +69,82 @@ export const customerListSchema = z.object({
   search: z.string().trim().max(120).optional(),
 });
 
+// z.coerce.boolean() would turn the string "false" into true, so map the two strings explicitly.
+const activeFlag = z
+  .enum(["true", "false"])
+  .transform((value) => value === "true")
+  .optional();
+
+// Money travels as whole minor units (fils for AED); the cap keeps values far below 2^53.
+const minorUnits = z.number().int().min(0).max(100_000_000_000);
+
+const objectId = z.string().regex(/^[a-f\d]{24}$/i, "Invalid ID");
+
+export const machineMakeCreateSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  companyName: optionalText,
+  country: optionalText,
+});
+
+export const machineMakeUpdateSchema = machineMakeCreateSchema
+  .partial()
+  .extend({ isActive: z.boolean().optional() });
+
+export const machineMakeListSchema = z.object({
+  isActive: activeFlag,
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  search: z.string().trim().max(120).optional(),
+});
+
+export const machineCapacityCreateSchema = z.object({
+  capacityKg: z.number().positive().max(1000),
+});
+
+export const machineCapacityListSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  search: z.string().trim().max(120).optional(),
+});
+
+export const machineModelCreateSchema = z.object({
+  make: objectId,
+  modelNumber: z.string().trim().min(1).max(80),
+  capacityKg: z.number().positive().max(1000),
+  type: z.enum(MACHINE_TYPES),
+  costPrice: minorUnits,
+  retailPrice: minorUnits,
+  wholesalePrice: minorUnits,
+});
+
+export const machineModelUpdateSchema = machineModelCreateSchema
+  .partial()
+  .extend({ isActive: z.boolean().optional() });
+
+export const machineModelListSchema = z.object({
+  make: objectId.optional(),
+  type: z.enum(MACHINE_TYPES).optional(),
+  isActive: activeFlag,
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  search: z.string().trim().max(120).optional(),
+});
+
 export type EmployeeCreateInput = z.infer<typeof employeeCreateSchema>;
 export type EmployeeUpdateInput = z.infer<typeof employeeUpdateSchema>;
 export type EmployeeListInput = z.infer<typeof employeeListSchema>;
 export type CustomerCreateInput = z.infer<typeof customerCreateSchema>;
 export type CustomerUpdateInput = z.infer<typeof customerUpdateSchema>;
 export type CustomerListInput = z.infer<typeof customerListSchema>;
+export type MachineModelCreateInput = z.infer<typeof machineModelCreateSchema>;
+export type MachineModelUpdateInput = z.infer<typeof machineModelUpdateSchema>;
+export type MachineModelListInput = z.infer<typeof machineModelListSchema>;
+export type MachineMakeCreateInput = z.infer<typeof machineMakeCreateSchema>;
+export type MachineMakeUpdateInput = z.infer<typeof machineMakeUpdateSchema>;
+export type MachineMakeListInput = z.infer<typeof machineMakeListSchema>;
+export type MachineCapacityCreateInput = z.infer<
+  typeof machineCapacityCreateSchema
+>;
+export type MachineCapacityListInput = z.infer<
+  typeof machineCapacityListSchema
+>;
