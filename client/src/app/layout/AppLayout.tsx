@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/domains/auth";
-import { navItems } from "../navigation";
+import { navItems, type NavItem } from "../navigation";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import {
   AppBar,
   Box,
   Button,
+  Collapse,
   Drawer,
   List,
   ListItemButton,
@@ -16,10 +19,55 @@ import {
 
 const drawerWidth = 240;
 
+type DrawerEntry = NavItem | { group: string; items: NavItem[] };
+
+// Folds items that share a `group` into one entry, at the position of the group's first item.
+function toDrawerEntries(items: NavItem[]): DrawerEntry[] {
+  const entries: DrawerEntry[] = [];
+  const groups = new Map<string, NavItem[]>();
+  for (const item of items) {
+    if (!item.group) {
+      entries.push(item);
+      continue;
+    }
+    const existing = groups.get(item.group);
+    if (existing) {
+      existing.push(item);
+    } else {
+      const groupItems = [item];
+      groups.set(item.group, groupItems);
+      entries.push({ group: item.group, items: groupItems });
+    }
+  }
+  return entries;
+}
+
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Only groups the user has toggled; otherwise a group is open while one of its pages is showing.
+  const [toggledGroups, setToggledGroups] = useState<Record<string, boolean>>({});
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const renderLink = ({ path, label }: NavItem, nested = false) => (
+    <ListItemButton
+      key={path}
+      component={NavLink}
+      to={path}
+      end={path === "/"}
+      onClick={() => setMobileOpen(false)}
+sx={{
+  ...(nested ? { pl: 4 } : {}),
+  '&[aria-current="page"]': {
+    bgcolor: "action.selected",
+    "&:hover": { bgcolor: "action.selected" },
+  },
+}}
+    >
+      <ListItemText primary={label} />
+    </ListItemButton>
+  );
 
   const drawer = (
     <Box>
@@ -27,19 +75,29 @@ export function AppLayout() {
         <Typography variant="h6">Sales CRM</Typography>
       </Toolbar>
       <List>
-        {navItems
-          .filter((item) => !item.adminOnly || user?.role === "admin")
-          .map(({ path, label }) => (
-            <ListItemButton
-              key={path}
-              component={NavLink}
-              to={path}
-              end={path === "/"}
-              onClick={() => setMobileOpen(false)}
-            >
-              <ListItemText primary={label} />
-            </ListItemButton>
-          ))}
+        {toDrawerEntries(
+          navItems.filter((item) => !item.adminOnly || user?.role === "admin"),
+        ).map((entry) => {
+          if (!("items" in entry)) return renderLink(entry);
+          const containsCurrentPage = entry.items.some((item) => item.path === pathname);
+          const open = toggledGroups[entry.group] ?? containsCurrentPage;
+          return (
+            <Box key={entry.group}>
+              <ListItemButton
+                aria-expanded={open}
+                onClick={() =>
+                  setToggledGroups((current) => ({ ...current, [entry.group]: !open }))
+                }
+              >
+                <ListItemText primary={entry.group} />
+                {open ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={open} unmountOnExit>
+                <List disablePadding>{entry.items.map((item) => renderLink(item, true))}</List>
+              </Collapse>
+            </Box>
+          );
+        })}
       </List>
     </Box>
   );

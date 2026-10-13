@@ -6,6 +6,9 @@ import { env } from "./config/env.js";
 import { authRoutes } from "./routes/authRoutes.js";
 import { employeeRoutes } from "./routes/employeeRoutes.js";
 import { customerRoutes } from "./routes/customerRoutes.js";
+import { machineCapacityRoutes } from "./routes/machineCapacityRoutes.js";
+import { machineMakeRoutes } from "./routes/machineMakeRoutes.js";
+import { machineModelRoutes } from "./routes/machineModelRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { ApiError } from "./utils/ApiError.js";
 
@@ -23,6 +26,9 @@ app.get("/health", (_request, response) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/employees", employeeRoutes);
 app.use("/api/v1/customers", customerRoutes);
+app.use("/api/v1/machine-makes", machineMakeRoutes);
+app.use("/api/v1/machine-capacities", machineCapacityRoutes);
+app.use("/api/v1/machine-models", machineModelRoutes);
 
 app.use((_request, _response, next) =>
   next(new ApiError(404, "Route not found")),
