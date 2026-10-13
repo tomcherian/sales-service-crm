@@ -12,7 +12,7 @@ const capacityFormSchema = z.object({
   capacityKg: z
     .string()
     .trim()
-    .regex(/^\d{1,3}(\.\d{1,2})?$/, "Enter a capacity such as 7.5")
+    .regex(/^(?:\d{1,3}(?:\.\d{1,2})?|1000(?:\.0{1,2})?)$/, "Enter a capacity such as 7.5")
     .refine((value) => Number(value) > 0, "Capacity must be greater than 0"),
 });
 
